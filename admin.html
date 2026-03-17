@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftWheels | Admin Control Center</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-body: #f8fafc;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            font-family: 'Inter', sans-serif; 
+            color: #1e293b;
+        }
+
+        /* Navbar */
+        .admin-nav {
+            background: #1e293b; 
+            backdrop-filter: blur(10px);
+        }
+
+        /* Cards */
+        .stat-card {
+            border: none;
+            border-radius: 16px;
+            background: white;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Tables */
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            border: none;
+        }
+
+        .table thead th {
+            background-color: #f1f5f9;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem;
+            border: none;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Badges */
+        .badge-soft-success { background-color: #d1fae5; color: #065f46; }
+        .badge-soft-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-soft-danger { background-color: #fee2e2; color: #991b1b; }
+        .badge-soft-info { background-color: #e0f2fe; color: #075985; }
+
+        /* Buttons */
+        .btn-action {
+            width: 36px; height: 36px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-action:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark admin-nav px-4 py-3 sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+                <i class="fas fa-shield-alt text-primary"></i> 
+                <span>SwiftWheels <span class="fw-light opacity-75">Admin</span></span>
+            </a>
+            <div class="d-flex align-items-center gap-4">
+                <div class="text-end d-none d-md-block">
+                    <div class="text-white fw-bold small">Super Administrator</div>
+                    <div class="text-white-50" style="font-size: 0.75rem;">Access Level: Full</div>
+                </div>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold m-0">Dashboard Overview</h2>
+                <p class="text-muted m-0">Real-time system statistics and approval queue.</p>
+            </div>
+            <button onclick="loadData()" class="btn btn-light shadow-sm text-primary fw-bold">
+                <i class="fas fa-sync-alt me-2"></i> Refresh Data
+            </button>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="stat-card p-4 d-flex align-items-center gap-4">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold m-0" id="user-count">...</h2>
+                        <div class="text-muted small fw-bold text-uppercase">Total Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card p-4 d-flex align-items-center gap-4">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold m-0" id="ride-count">...</h2>
+                        <div class="text-muted small fw-bold text-uppercase">Active Rides</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card p-4 d-flex align-items-center gap-4">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold m-0" id="req-count">...</h2>
+                        <div class="text-muted small fw-bold text-uppercase">Total Bookings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card mb-5">
+            <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+                <h5 class="m-0 fw-bold text-dark"><i class="fas fa-car me-2 text-warning"></i>Pending Approvals</h5>
+                <span class="badge bg-warning text-dark rounded-pill" id="pending-badge">0 Pending</span>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Applicant</th>
+                            <th>Vehicle Type</th>
+                            <th>Model</th>
+                            <th>License Plate</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vehicle-table">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="no-vehicles" class="p-5 text-center text-muted d-none">
+                <div class="mb-3"><i class="fas fa-check-circle fa-3x text-success opacity-25"></i></div>
+                <h6 class="fw-bold">All caught up!</h6>
+                <p class="small">No pending vehicle requests at the moment.</p>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="p-4 border-bottom bg-light">
+                <h5 class="m-0 fw-bold text-dark"><i class="fas fa-users-cog me-2 text-primary"></i>User Database</h5>
+            </div>
+            
+            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">User Identity</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Vehicle Info</th>
+                            <th class="text-end pe-4">Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-info-circle me-2"></i> <span id="toast-msg">Notification</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- AUTH GUARD ---
+        const currentUser = JSON.parse(localStorage.getItem('carpoolUser'));
+        if (!currentUser || !currentUser.isAdmin) {
+            alert("⛔ UNAUTHORIZED ACCESS\n\nYou must be an Administrator to view this page.");
+            window.location.href = '/';
+        }
+
+        // --- CORE LOGIC ---
+        async function loadData() {
+            showToast("Syncing data...", "info");
+
+            try {
+                // 1. Fetch Stats
+                const statsRes = await fetch('/api/admin/stats');
+                const stats = await statsRes.json();
+                
+                // Animate Numbers
+                animateValue("user-count", 0, stats.userCount, 1000);
+                animateValue("ride-count", 0, stats.rideCount, 1000);
+                animateValue("req-count", 0, stats.reqCount, 1000);
+
+                // 2. Fetch Users
+                const userRes = await fetch('/api/admin/users');
+                const users = await userRes.json();
+                
+                renderTables(users);
+                
+            } catch(e) {
+                console.error(e);
+                showToast("Server Connection Failed", "danger");
+            }
+        }
+
+        function renderTables(users) {
+            const userList = document.getElementById('user-table');
+            const vehicleList = document.getElementById('vehicle-table');
+            const noVehiclesMsg = document.getElementById('no-vehicles');
+            const pendingBadge = document.getElementById('pending-badge');
+            
+            userList.innerHTML = '';
+            vehicleList.innerHTML = '';
+            let pendingCount = 0;
+
+            users.forEach(user => {
+                if(user.username === 'admin') return; // Hide Super Admin
+
+                // 1. Setup Data
+                const isVerified = user.isVerified;
+                const hasVehicle = user.vehicle && user.vehicle.model;
+                const isVehicleApproved = hasVehicle && user.vehicle.isVerified;
+                
+                // 🟢 FIX: Determine Icon dynamically
+                const vType = user.vehicle ? user.vehicle.type : 'Car';
+                const vIcon = vType === 'Bike' ? 'fa-motorcycle' : 'fa-car';
+
+                // 2. Render User Row
+                userList.innerHTML += `
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+                                ${user.fullName.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">${user.fullName}</div>
+                                <div class="small text-muted">@${user.username}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small">${user.email}</div>
+                        <div class="small text-muted">${user.phone || 'No Phone'}</div>
+                    </td>
+                    <td>
+                        ${isVerified 
+                            ? '<span class="badge badge-soft-success"><i class="fas fa-check-circle me-1"></i> Verified</span>' 
+                            : '<span class="badge badge-soft-warning">Unverified</span>'}
+                    </td>
+                    <td>
+                        ${isVehicleApproved 
+                            ? `<span class="badge badge-soft-info"><i class="fas ${vIcon} me-1"></i> ${vType}</span>` 
+                            : (hasVehicle ? '<span class="badge badge-soft-warning">Pending</span>' : '<span class="text-muted small">-</span>')}
+                    </td>
+                    <td class="text-end pe-4">
+                        <button onclick="banUser('${user._id}')" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Delete User">
+                            <i class="fas fa-ban me-1"></i> Ban
+                        </button>
+                    </td>
+                </tr>`;
+
+                // 3. Render Vehicle Approval Row (If Pending)
+                if (hasVehicle && !isVehicleApproved) {
+                    pendingCount++;
+                    // Reuse the icon logic
+                    const pendingIcon = user.vehicle.type === 'Bike' ? 'fa-motorcycle' : 'fa-car';
+                    
+                    vehicleList.innerHTML += `
+                    <tr>
+                        <td class="ps-4 fw-bold">
+                            ${user.fullName}
+                            <div class="small text-muted fw-normal">@${user.username}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas ${pendingIcon} me-1"></i> ${user.vehicle.type || 'Car'}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-primary">${user.vehicle.model}</td>
+                        <td class="font-monospace bg-light p-2 rounded text-center" style="width: fit-content;">${user.vehicle.plateNumber}</td>
+                        <td class="text-center">
+                            <button onclick="approveVehicle('${user.username}')" class="btn-action btn-success text-white shadow-sm mx-1" title="Approve">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button onclick="rejectVehicle('${user.username}')" class="btn-action btn-danger text-white shadow-sm mx-1" title="Reject">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // Empty State Logic
+            if (pendingCount === 0) {
+                noVehiclesMsg.classList.remove('d-none');
+            } else {
+                noVehiclesMsg.classList.add('d-none');
+            }
+            pendingBadge.innerText = `${pendingCount} Pending`;
+        }
+
+        // --- API ACTIONS ---
+
+        async function approveVehicle(username) {
+            try {
+                const res = await fetch('/api/admin/verify-vehicle', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username })
+                });
+                if(res.ok) {
+                    showToast(`Vehicle for @${username} Approved!`, 'success');
+                    loadData();
+                } else throw new Error();
+            } catch(e) { showToast("Approval Failed", "danger"); }
+        }
+
+        async function rejectVehicle(username) {
+            if(!confirm("⚠️ Reject application? The user will have to re-enter details.")) return;
+            try {
+                const res = await fetch('/api/admin/reject-vehicle', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username })
+                });
+                if(res.ok) {
+                    showToast("Vehicle Application Rejected", "warning");
+                    loadData();
+                } else throw new Error();
+            } catch(e) { showToast("Action Failed", "danger"); }
+        }
+
+        async function banUser(id) {
+            if(!confirm("⛔ PERMANENT ACTION: This will delete the user and all their active rides.")) return;
+            try {
+                await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                showToast("User Banned & Deleted", "dark");
+                loadData();
+            } catch(e) { showToast("Could not ban user", "danger"); }
+        }
+
+        // --- UTILS ---
+        function logout() {
+            localStorage.removeItem('carpoolUser');
+            window.location.href = '/';
+        }
+
+        function showToast(msg, type='primary') {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            // Color mapping
+            const colors = { success: 'bg-success', danger: 'bg-danger', warning: 'bg-warning text-dark', info: 'bg-primary', dark: 'bg-dark' };
+            toastEl.className = `toast align-items-center border-0 ${colors[type] || 'bg-primary'} text-white`;
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // --- START ---
+        loadData();
+    </script>
+</body>
+</html>
