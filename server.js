@@ -20,14 +20,14 @@ mongoose.connect(process.env.MONGO_URI)
 // EMAIL CONFIG (Updated for Better Reliability)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', // Explicitly set host
-    port: 465,              // Use Port 465 for Secure SSL
-    secure: true,           // Must be true for 465
+    port: 587,              // Use Port 587 for work friendly
+    secure: false,           // Must be false for 587
     auth: {
    user: process.env.EMAIL_USER,
    pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // Helps avoid some local SSL errors
+        ciphers: 'SSLv3' // Helps avoid some local SSL errors
     }
 });
 
@@ -567,5 +567,5 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
