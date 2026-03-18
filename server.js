@@ -19,16 +19,11 @@ mongoose.connect(process.env.MONGO_URI)
 // EMAIL CONFIG
 // EMAIL CONFIG (Updated for Better Reliability)
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Explicitly set host
-    port: 465,              // Use Port 465 for secure
-    secure: true,           // Must be true for 465
+   service: 'gmail',
     auth: {
-   user: process.env.EMAIL_USER,
-   pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
-    tls: {
-        rejectUnauthorized: false // Helps avoid some local SSL errors
-    }
 });
 
 // TEST CONNECTION ON STARTUP
