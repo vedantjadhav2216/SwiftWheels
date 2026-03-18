@@ -27,7 +27,7 @@ const transporter = nodemailer.createTransport({
    pass: process.env.EMAIL_PASS
     },
     tls: {
-        ciphers: 'SSLv3' // Helps avoid some local SSL errors
+        rejectUnauthorized: false // Helps avoid some local SSL errors
     }
 });
 
