@@ -543,7 +543,7 @@ app.post('/api/contact', async (req, res) => {
     try {
         const mailOptions = {
             from: 'SwiftWheels <csmailer11@gmail.com>', // System Email
-            to: 'swayamvjadhav2010@gmail.com', // ⚠️ Send to YOURSELF (Admin)
+            to: 'vedantjadhav220106@gmail.com', // ⚠️ Send to YOURSELF (Admin)
             replyTo: email, // So you can click "Reply" to answer the user
             subject: `📢 New Feedback from ${name}`,
             html: `
