@@ -4,7 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Ride = require('./models/Ride');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const mailgun = require("mailgun-js");
 const User = require('./models/User');
 
 const app = express();
@@ -18,22 +18,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 // EMAIL CONFIG
 // EMAIL CONFIG (Updated for Better Reliability)
-const transporter = nodemailer.createTransport({
-   service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
+const mg = mailgun({
+  apiKey: process.env.MAILGUN_API_KEY,
+  domain: process.env.MAILGUN_DOMAIN,
 });
 
-// TEST CONNECTION ON STARTUP
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log("❌ Email Server Error:", error);
-    } else {
-        console.log("✅ Email Server is Ready to Send Messages");
-    }
-});
+console.log("✅ Mailgun Ready");
+
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // ==========================
@@ -66,10 +57,13 @@ app.post('/api/register', async (req, res) => {
         });
         
         await newUser.save();
-        await transporter.sendMail({
-            to: email, subject: 'Verify SwiftWheels', 
-            text: `Your OTP is: ${otp}`
-        });
+        await mg.messages().send({
+        from: `SwiftWheels <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+        to: email,
+        subject: 'Verify SwiftWheels',
+        text: `Your OTP is: ${otp}`
+    });
+
         res.json({ message: "OTP sent!" });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -500,10 +494,13 @@ app.post('/api/rides/:id/pay', async (req, res) => {
             `
         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) console.error("Email Error:", err);
-            else console.log("Receipt sent:", info.response);
-        });
+        await mg.messages().send({
+        from: `SwiftWheels <mailgun@${process.env.MAILGUN_DOMAIN}>`,
+        to: userEmail,
+        subject: '🚖 Payment Receipt - SwiftWheels',
+        html: mailOptions.html
+    });
+
 
         res.json({ message: "Payment Successful & Receipt Sent" });
 
@@ -553,7 +550,14 @@ app.post('/api/contact', async (req, res) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await mg.messages().send({
+        from: `SwiftWheels <mailgun@${process.env.MAILGUN_DOMAIN}>`,
+        to: 'vedantjadhav220106@gmail.com',
+        replyTo: email,
+        subject: `📢 New Feedback from ${name}`,
+        html: mailOptions.html
+    });
+
         res.json({ message: "Feedback sent successfully!" });
 
     } catch (error) {
